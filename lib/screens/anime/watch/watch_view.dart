@@ -57,17 +57,19 @@ class _WatchScreenState extends State<WatchScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.inactive && settings.autoPip) {
+      PictureInPicture.updatePiPParams(
+        pipParams: const PiPParams(
+          pipWindowWidth: 256,
+          pipWindowHeight: 144,
+          initialCorner: PIPViewCorner.bottomRight,
+        ),
+      );
       PictureInPicture.startPiP(
         pipWidget: PiPWidget(
           onPiPClose: () {},
           elevation: 8,
           pipBorderRadius: 12,
           child: Obx(() => controller.videoWidget),
-        ),
-        pipParams: const PiPParams(
-          pipWindowWidth: 256,
-          pipWindowHeight: 144,
-          initialCorner: PIPViewCorner.bottomRight,
         ),
       );
     }
