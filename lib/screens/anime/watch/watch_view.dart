@@ -1,3 +1,4 @@
+import 'package:anymex/controllers/settings/settings.dart';
 import 'package:anymex/database/data_keys/keys.dart';
 import 'package:anymex/database/isar_models/episode.dart';
 import 'package:anymex/database/isar_models/video.dart' as model;
@@ -11,6 +12,7 @@ import 'package:anymex/screens/anime/watch/controls/widgets/subtitle_text.dart';
 import 'package:anymex/screens/anime/watch/subtitles/subtitle_view.dart';
 import 'package:anymex/screens/anime/widgets/media_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_in_app_pip/flutter_in_app_pip.dart';
 import 'package:get/get.dart';
 
 class WatchScreen extends StatefulWidget {
@@ -34,12 +36,14 @@ class WatchScreen extends StatefulWidget {
   State<WatchScreen> createState() => _WatchScreenState();
 }
 
-class _WatchScreenState extends State<WatchScreen> {
+class _WatchScreenState extends State<WatchScreen> with WidgetsBindingObserver {
   late PlayerController controller;
+  final settings = Get.find<Settings>();
 
   @override
   initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     controller = Get.put(PlayerController(
         widget.episodeSrc,
         widget.currentEpisode,
@@ -50,7 +54,32 @@ class _WatchScreenState extends State<WatchScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.inactive && settings.autoPip) {
+      PictureInPicture.startPiP(
+        pipWidget: PiPWidget(
+          onPiPClose: () {},
+          elevation: 8,
+          pipBorderRadius: 12,
+          child: Obx(() => controller.videoWidget),
+        ),
+        pipParams: const PiPParams(
+          pipWindowWidth: 256,
+          pipWindowHeight: 144,
+          initialCorner: PIPViewCorner.bottomRight,
+        ),
+      );
+    }
+    if (state == AppLifecycleState.resumed) {
+      PictureInPicture.stopPiP();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    PictureInPicture.stopPiP();
     controller.delete();
     Get.delete<PlayerController>(force: true);
     super.dispose();
