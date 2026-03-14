@@ -109,6 +109,7 @@ dependencies:
     vibration: ^3.1.5
     palette_generator: ^0.3.3+7
     better_player_plus: any
+    flutter_in_app_pip: ^1.7.4
     text_scroll: ^0.2.1
 
     flutter_cache_manager: any
