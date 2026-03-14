@@ -388,6 +388,12 @@ class Settings extends GetxController {
     PlayerSettingsKeys.enableScreenshot.set(value);
   }
 
+  bool get autoPip => _getPlayerSetting((s) => s.autoPip);
+  set autoPip(bool value) {
+    playerSettings.update((s) => s?.autoPip = value);
+    PlayerSettingsKeys.autoPip.set(value);
+  }
+
   bool get enableSwipeControls =>
       _getPlayerSetting((s) => s.enableSwipeControls);
   set enableSwipeControls(bool value) {
