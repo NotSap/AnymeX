@@ -212,6 +212,7 @@ enum PlayerSettingsKeys {
   subtitleOpacity,
   subtitleBottomMargin,
   subtitleOutlineType,
+  autoPip,
 }
 
 enum UISettingsKeys {
