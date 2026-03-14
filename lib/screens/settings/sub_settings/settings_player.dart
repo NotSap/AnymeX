@@ -940,6 +940,15 @@ class _SettingsPlayerState extends State<SettingsPlayer> {
                                   switchValue: settings.enableScreenshot,
                                   onChanged: (val) =>
                                       settings.enableScreenshot = val),
+                              CustomSwitchTile(
+                                  padding: const EdgeInsets.all(10),
+                                  icon: Icons.picture_in_picture_rounded,
+                                  title: "Auto Picture-in-Picture",
+                                  description:
+                                      "Automatically shows a floating video window when you leave the player",
+                                  switchValue: settings.autoPip,
+                                  onChanged: (val) =>
+                                      settings.autoPip = val),
                               CustomSliderTile(
                                 sliderValue: settings.seekDuration.toDouble(),
                                 max: 50,
