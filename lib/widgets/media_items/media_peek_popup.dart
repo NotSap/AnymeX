@@ -335,38 +335,17 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
             children: [
               // Title row — marquee + lib icon when logged in, plain title when logged out
               if (_isLoggedIn)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: TextScroll(
-                        widget.media.title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: colors.onSurface,
-                        ),
-                        velocity:
-                            const Velocity(pixelsPerSecond: Offset(30, 0)),
-                        pauseBetween: const Duration(seconds: 2),
-                        fadedBorder: true,
-                        fadedBorderWidth: 0.05,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: _DetailsStyleButton(
-                        onTap: _openLibraryDialog,
-                        child: Icon(
-                          HugeIcons.strokeRoundedLibrary,
-                          color: colors.onSurface,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ],
+                TextScroll(
+                  widget.media.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: colors.onSurface,
+                  ),
+                  velocity: const Velocity(pixelsPerSecond: Offset(30, 0)),
+                  pauseBetween: const Duration(seconds: 2),
+                  fadedBorder: true,
+                  fadedBorderWidth: 0.05,
                 )
               else
                 AnymexText(
@@ -390,7 +369,27 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
                 ),
               ],
               const SizedBox(height: 10),
-              _buildMetaRow(colors),
+              if (_isLoggedIn)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(child: _buildMetaRow(colors)),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 50,
+                      child: _DetailsStyleButton(
+                        onTap: _openLibraryDialog,
+                        child: Icon(
+                          HugeIcons.strokeRoundedLibrary,
+                          color: colors.onSurface,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                _buildMetaRow(colors),
               const SizedBox(height: 10),
               _buildActionButtons(colors),
             ],
