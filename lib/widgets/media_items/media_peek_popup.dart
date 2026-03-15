@@ -1,3 +1,4 @@
+// Made By NotSap
 import 'dart:convert';
 
 import 'package:anymex/controllers/service_handler/params.dart';
@@ -298,14 +299,7 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (_isLoggedIn)
-            IconButton(
-              onPressed: _openLibraryDialog,
-              icon: Icon(HugeIcons.strokeRoundedLibrary,
-                  color: colors.onSurfaceVariant),
-            )
-          else
-            const SizedBox(width: 48),
+          const SizedBox(width: 48),
           Container(
             width: 40,
             height: 4,
@@ -338,75 +332,66 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
         ),
         const SizedBox(width: 14),
         Expanded(
-          child: _isLoggedIn
-              ? _buildHeaderLoggedIn(colors)
-              : _buildHeaderLoggedOut(colors),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeaderLoggedOut(ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AnymexText(
-          text: widget.media.title,
-          variant: TextVariant.bold,
-          size: 15,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (widget.media.romajiTitle.isNotEmpty &&
-            widget.media.romajiTitle != widget.media.title &&
-            widget.media.romajiTitle != '?') ...[
-          const SizedBox(height: 4),
-          AnymexText(
-            text: widget.media.romajiTitle,
-            variant: TextVariant.regular,
-            size: 12,
-            color: colors.onSurfaceVariant,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title row — marquee + lib icon when logged in, plain title when logged out
+              if (_isLoggedIn)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: TextScroll(
+                        widget.media.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: colors.onSurface,
+                        ),
+                        velocity:
+                            const Velocity(pixelsPerSecond: Offset(30, 0)),
+                        pauseBetween: const Duration(seconds: 2),
+                        fadedBorder: true,
+                        fadedBorderWidth: 0.05,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: _openLibraryDialog,
+                      child: Icon(
+                        HugeIcons.strokeRoundedLibrary,
+                        color: colors.onSurfaceVariant,
+                        size: 22,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                AnymexText(
+                  text: widget.media.title,
+                  variant: TextVariant.bold,
+                  size: 15,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              if (widget.media.romajiTitle.isNotEmpty &&
+                  widget.media.romajiTitle != widget.media.title &&
+                  widget.media.romajiTitle != '?') ...[
+                const SizedBox(height: 4),
+                AnymexText(
+                  text: widget.media.romajiTitle,
+                  variant: TextVariant.regular,
+                  size: 12,
+                  color: colors.onSurfaceVariant,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 10),
+              _buildMetaRow(colors),
+            ],
           ),
-        ],
-        const SizedBox(height: 10),
-        _buildMetaRow(colors),
-      ],
-    );
-  }
-
-  Widget _buildHeaderLoggedIn(ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextScroll(
-          widget.media.title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-            color: colors.onSurface,
-          ),
-          velocity: const Velocity(pixelsPerSecond: Offset(30, 0)),
-          pauseBetween: const Duration(seconds: 2),
-          fadedBorder: true,
-          fadedBorderWidth: 0.05,
         ),
-        if (widget.media.romajiTitle.isNotEmpty &&
-            widget.media.romajiTitle != widget.media.title &&
-            widget.media.romajiTitle != '?') ...[
-          const SizedBox(height: 4),
-          AnymexText(
-            text: widget.media.romajiTitle,
-            variant: TextVariant.regular,
-            size: 12,
-            color: colors.onSurfaceVariant,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-        const SizedBox(height: 10),
-        _buildMetaRow(colors),
       ],
     );
   }
@@ -588,7 +573,6 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
           ],
           if (!_isLoggedIn) ...[
             const SizedBox(width: gap),
-            // Add to Library — icon only, shown when logged out (logged in: see drag handle)
             SizedBox(
               width: iconBtnWidth,
               child: _DetailsStyleButton(
