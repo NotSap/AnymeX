@@ -1,5 +1,4 @@
-// Made By NotSap
-import 'dart:convert';
+// Made By NotSapimport 'dart:convert';
 
 import 'package:anymex/controllers/service_handler/params.dart';
 import 'package:anymex/controllers/service_handler/service_handler.dart';
@@ -184,7 +183,7 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
         media: widget.media,
         onUpdate: (id, score, status, progress, startedAt, completedAt, isPrivate) async {
           final listId =
-              fetcher.onlineService.currentMedia.value.id ?? widget.media.id;
+              fetcher.onlineService.currentMedia.value.mediaListId ?? widget.media.id;
           fetcher.onlineService.updateListEntry(UpdateListEntryParams(
             listId: listId,
             isAnime: !isManga,
@@ -278,8 +277,6 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeader(colors),
-                      const SizedBox(height: 16),
-                      _buildActionButtons(colors),
                       const SizedBox(height: 20),
                       _loading ? _buildSkeleton(colors) : _buildContent(colors),
                     ],
@@ -389,6 +386,8 @@ class _MediaPeekPopupState extends State<MediaPeekPopup> {
               ],
               const SizedBox(height: 10),
               _buildMetaRow(colors),
+              const SizedBox(height: 10),
+              _buildActionButtons(colors),
             ],
           ),
         ),
