@@ -1685,6 +1685,7 @@ class AnilistAuth extends GetxController {
           updatedAt
           startedAt { year month day }
           completedAt { year month day }
+          private
         }
       }
     }
@@ -1917,7 +1918,10 @@ class AnilistAuth extends GetxController {
         final newMedia = currentMedia.value
           ..episodeCount = progress.toString()
           ..watchingStatus = status
-          ..score = score.toString();
+          ..score = score.toString()
+          ..startedAt = startedAt
+          ..completedAt = completedAt
+          ..isPrivate = isPrivate;
         currentMedia.value = newMedia;
         if (isAnime) {
           await fetchUserAnimeList();
@@ -1976,6 +1980,9 @@ class AnilistAuth extends GetxController {
             status
             score
             updatedAt
+            startedAt { year month day }
+            completedAt { year month day }
+            private
           }
         }
       }
