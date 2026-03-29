@@ -35,6 +35,8 @@ class Media {
   List<Chapter>? altMediaContent;
   String? totalChapters;
   List<String> genres;
+  List<String>? synonyms;
+  List<Map<String, dynamic>>? tags;
   List<String>? studios;
   List<Character>? characters;
   List<Staff>? staff;
@@ -78,6 +80,8 @@ class Media {
       this.aired = '?',
       this.totalChapters = '?',
       this.genres = const [],
+      this.synonyms,
+      this.tags,
       this.studios,
       this.characters,
       this.staff,
@@ -392,6 +396,13 @@ class Media {
       seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
       totalChapters: json['chapters']?.toString() ?? '?',
       genres: List<String>.from(json['genres'] ?? []),
+      synonyms: List<String>.from(json['synonyms'] ?? []),
+      tags: (json['tags'] as List?)
+          ?.map((tag) => {
+                'name': tag['name'],
+                'rank': tag['rank'],
+              })
+          .toList(),
       studios: (json['studios']?['nodes'] as List?)
               ?.map((el) => el['name'].toString())
               .toList() ??
