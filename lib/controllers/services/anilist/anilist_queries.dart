@@ -37,6 +37,11 @@ const detailsPrimaryQuery = '''
           day
         }
         genres
+        synonyms
+        tags {
+          name
+          rank
+        }
         studios {
           nodes {
             id
