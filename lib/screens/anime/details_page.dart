@@ -874,7 +874,57 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
     );
   }
 
+  Widget _buildScrollableChips(
+      BuildContext context, String title, List<String> items) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+          child: AnymexText(
+            text: title,
+            variant: TextVariant.bold,
+            size: 18,
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: items.map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: context.colors.surfaceContainer.opaque(0.5),
+                    border: Border.all(
+                      color: context.colors.outline.opaque(0.2),
+                    ),
+                  ),
+                  child: AnymexText(
+                    text: item,
+                    size: 14,
+                    color: context.colors.onSurface,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Column _buildCommonInfo(BuildContext context) {
+    final synonyms = anilistData?.synonyms ?? [];
+    final tags = (anilistData?.tags ?? [])
+        .map((t) => "${t['name']} (${t['rank']}%)")
+        .toList();
+
     return Column(
       children: [
         Padding(
@@ -895,6 +945,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
             ],
           ),
         ),
+        _buildScrollableChips(context, "Synonyms", synonyms),
+        const SizedBox(height: 10),
+        _buildScrollableChips(context, "Tags", tags),
+        const SizedBox(height: 10),
         ReusableCarousel(
           data: anilistData!.relations ?? [],
           title: "Relations",
