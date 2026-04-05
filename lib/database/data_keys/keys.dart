@@ -143,6 +143,7 @@ enum SourceKeys {
 enum PluginKeys {
   runtimeHostInstalledVersion,
   runtimeHostInstalledReleaseTitle,
+  bridgeMode,
 }
 
 enum AuthKeys {
@@ -175,7 +176,8 @@ enum DynamicKeys {
   librarySortOrder,
   libraryGridSize,
   mappedMediaTitle,
-  offlineVideoProgress;
+  offlineVideoProgress,
+  stickySource;
 
   T get<T>(dynamic id, [T? defaultValue]) {
     return KvHelper.get<T>('${name}_$id', defaultVal: defaultValue);

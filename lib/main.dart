@@ -11,6 +11,7 @@ import 'package:anymex/controllers/services/anilist/anilist_data.dart';
 import 'package:anymex/controllers/services/mal/mal_service.dart';
 import 'package:anymex/controllers/services/simkl/simkl_service.dart';
 import 'package:anymex/controllers/services/storage/storage_manager_service.dart';
+import 'package:anymex/controllers/services/underrated_service.dart';
 import 'package:anymex/controllers/settings/settings.dart';
 import 'package:anymex/controllers/source/source_controller.dart';
 import 'package:anymex/controllers/sync/gist_sync_controller.dart';
@@ -46,6 +47,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:get/get.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:iconly/iconly.dart';
@@ -100,6 +102,11 @@ void initDeepLinkListener() async {
 void main(List<String> args) async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    if (Platform.isAndroid) {
+      FlutterDisplayMode.setHighRefreshRate().catchError((e) {
+        debugPrint("Error setting high refresh rate: $e");
+      });
+    }
     ExternalFontLoader.loadAllFonts();
 
     await Logger.init();
@@ -160,8 +167,10 @@ void main(List<String> args) async {
 }
 
 void _initializeGetxController() async {
+  Get.put(Settings()); 
   Get.put(OfflineStorageController());
   Get.put(AnilistAuth());
+  Get.put(UnderratedService()); 
   Get.put(AnilistData());
   Get.put(SimklService());
   Get.put(MalService());
@@ -169,7 +178,6 @@ void _initializeGetxController() async {
   if (!Get.isRegistered<SourceController>()) {
     Get.put(SourceController());
   }
-  Get.put(Settings());
   Get.put(ServiceHandler());
   Get.put(GreetingController());
   Get.put(CommentumService());
@@ -187,14 +195,14 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-
   bool _showMainApp = false;
   bool _isFullScreen = false;
 
   late FocusNode focusNode;
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
       if (_isFullScreen) {
         AnymexTitleBar.setFullScreen(false);
       } else {
@@ -204,10 +212,12 @@ class _MainAppState extends State<MainApp> {
         }
       }
       return KeyEventResult.handled;
-    } else if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.f11) {
+    } else if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.f11) {
       AnymexTitleBar.toggleFullScreen();
       return KeyEventResult.handled;
-    } else if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+    } else if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.enter) {
       final isAltPressed = HardwareKeyboard.instance.logicalKeysPressed
               .contains(LogicalKeyboardKey.altLeft) ||
           HardwareKeyboard.instance.logicalKeysPressed
@@ -224,7 +234,8 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
 
-    AnymexTitleBar.isFullScreen.addListener(() => _isFullScreen = AnymexTitleBar.isFullScreen.value);
+    AnymexTitleBar.isFullScreen
+        .addListener(() => _isFullScreen = AnymexTitleBar.isFullScreen.value);
 
     focusNode = FocusNode();
 
@@ -436,13 +447,12 @@ class _FilterScreenState extends State<FilterScreen> {
                         onTap: _onItemTapped,
                         label: 'Library',
                       ),
-                      if (sourceController.shouldShowExtensions.value)
-                        NavItem(
-                          unselectedIcon: Icons.extension_outlined,
-                          selectedIcon: Icons.extension_rounded,
-                          onTap: _onItemTapped,
-                          label: "Extensions",
-                        ),
+                      NavItem(
+                        unselectedIcon: Icons.extension_outlined,
+                        selectedIcon: Icons.extension_rounded,
+                        onTap: _onItemTapped,
+                        label: "Extensions",
+                      ),
                     ],
                   ),
                 ],
