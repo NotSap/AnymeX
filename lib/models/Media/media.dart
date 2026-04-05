@@ -51,6 +51,7 @@ class Media {
   String? characterRole;
   int? seasonYear;
   List<String> synonyms;
+  List<Map<String, dynamic>>? tags;
 
   // String get uniqueId => "$id-${serviceType.name}";
   String get uniqueId => id.split('*').first;
@@ -95,6 +96,7 @@ class Media {
       this.userStatus,
       this.characterRole,
       this.synonyms = const [],
+      this.tags,
       DateTime? createdAt})
       : createdAt = DateTime.now();
 
@@ -391,16 +393,21 @@ class Media {
       rating: ((json['averageScore'] ?? 0) / 10).toString(),
       popularity: json['popularity']?.toString() ?? '6900',
       format: json['format'] ?? '?',
-      aired: _parseDateRange(json['startDate'], json['endDate']),
-      seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
+      aired: _parseDateRange(json['sta      seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
       totalChapters: json['chapters']?.toString() ?? '?',
       genres: List<String>.from(json['genres'] ?? []),
+      synonyms: List<String>.from(json['synonyms'] ?? []),
+      tags: (json['tags'] as List?)
+          ?.map((tag) => {
+                'name': tag['name'],
+                'rank': tag['rank'],
+              })
+          .toList(),
       studios: (json['studios']?['nodes'] as List?)
               ?.map((el) => el['name'].toString())
               .toList() ??
           [],
-      characters: (json['characters']?['edges'] as List?)
-          ?.map((character) => Character.fromJson(character))
+      characters: (json['characters']?['edges'] as List?) Character.fromJson(character))
           .toList(),
       relations: (json['relations']?['edges'] as List?)
               ?.map((relation) => Relation.fromJson(relation))
