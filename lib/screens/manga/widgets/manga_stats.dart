@@ -143,6 +143,14 @@ class _MangaStatsState extends State<MangaStats> {
             ),
             isInitiallyExpanded: true,
           ),
+          if (widget.data.synonyms != null && widget.data.synonyms!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildScrollableChips(context, "Synonyms", widget.data.synonyms!),
+          ],
+          if (widget.data.tags != null && widget.data.tags!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildScrollableChips(context, "Tags", widget.data.tags!, isTag: true),
+          ],
           const SizedBox(height: 16),
           FutureBuilder<AnimeAdaptation>(
             future: _animeAdaptationFuture,
@@ -255,6 +263,103 @@ class _MangaStatsState extends State<MangaStats> {
   }
 
 
+
+  Widget _buildScrollableChips(
+    BuildContext context,
+    String title,
+    List<dynamic> items, {
+    bool isTag = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: context.colors.primary.opaque(0.15, iReallyMeanIt: true),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isTag ? Icons.tag_rounded : Icons.translate_rounded,
+                size: 20,
+                color: context.colors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            AnymexText(
+              text: title,
+              variant: TextVariant.bold,
+              size: 16,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: items.map((item) {
+              String label;
+              Color? chipColor;
+              VoidCallback? onTap;
+
+              if (isTag) {
+                final tag = item as Map<String, dynamic>;
+                final rank = tag['rank'] as int;
+                label = "${tag['name']} ($rank%)";
+
+                if (rank >= 80) {
+                  chipColor = Colors.green.withOpacity(0.2);
+                } else if (rank >= 60) {
+                  chipColor = Colors.orange.withOpacity(0.2);
+                } else {
+                  chipColor = context.colors.surfaceContainer.opaque(0.5);
+                }
+
+                onTap = () {
+                  navigate(() => SearchPage(
+                        searchTerm: '',
+                        isManga: true,
+                        initialFilters: {
+                          'tags': [tag['name']]
+                        },
+                      ));
+                };
+              } else {
+                label = item.toString();
+                chipColor = context.colors.surfaceContainer.opaque(0.5);
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: chipColor,
+                      border: Border.all(
+                        color: context.colors.outline.opaque(0.2),
+                      ),
+                    ),
+                    child: AnymexText(
+                      text: label,
+                      size: 14,
+                      color: context.colors.onSurface,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildSectionContainer(
     BuildContext context, {
