@@ -10,6 +10,10 @@ const detailsPrimaryQuery = '''
           native
         }
         synonyms
+        tags {
+          name
+          rank
+        }
         description
         coverImage {
           color
