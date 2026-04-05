@@ -157,7 +157,6 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
     Future.delayed(const Duration(milliseconds: 500), () {
       _checkAnimePresence();
     });
-    
     _fetchAnilistData();
   }
 
@@ -325,12 +324,9 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
     final key =
         '${sourceController.activeSource.value?.id}-${anilistData?.id}-${anilistData?.serviceType.index}';
     final savedTitle = DynamicKeys.mappedMediaTitle.get<String?>(key, null);
-    final mappedData = await SourceMapper.mapMedia(
+    final mappedData = await mapMedia(
         formatTitles(anilistData ?? widget.media) ?? [], searchedTitle,
-        mediaId: widget.media.id.toString(),
-        type: ItemType.anime,
-        savedTitle: savedTitle,
-        synonyms: anilistData?.synonyms ?? []);
+        savedTitle: savedTitle);
     if (_isStaleSourceRequest(activeRequestId) || !mounted) {
       return;
     }
@@ -576,7 +572,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
           ),
           if (anilistData != null) ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+              padding: const EdgeInsets.fromLTRB(20.0, 10, 20, 0),
               child: Column(
                 children: [
                   Obx(() {
@@ -878,61 +874,11 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
     );
   }
 
-  Widget _buildScrollableChips(
-      BuildContext context, String title, List<String> items) {
-    if (items.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-          child: AnymexText(
-            text: title,
-            variant: TextVariant.bold,
-            size: 18,
-          ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: items.map((item) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: context.colors.surfaceContainer.opaque(0.5),
-                    border: Border.all(
-                      color: context.colors.outline.opaque(0.2),
-                    ),
-                  ),
-                  child: AnymexText(
-                    text: item,
-                    size: 14,
-                    color: context.colors.onSurface,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
   Column _buildCommonInfo(BuildContext context) {
-    final synonyms = anilistData?.synonyms ?? [];
-    final tags = (anilistData?.tags ?? [])
-        .map((t) => "${t['name']} (${t['rank']}%)")
-        .toList();
-
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             children: [
               const SizedBox(height: 20),
@@ -949,10 +895,6 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage> {
             ],
           ),
         ),
-        _buildScrollableChips(context, "Synonyms", synonyms),
-        const SizedBox(height: 10),
-        _buildScrollableChips(context, "Tags", tags),
-        const SizedBox(height: 10),
         ReusableCarousel(
           data: anilistData!.relations ?? [],
           title: "Relations",
