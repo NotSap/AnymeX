@@ -282,102 +282,36 @@ class Media {
     return Media(
       id: '${json['ids']?['simkl_id']?.toString() ?? json['ids']?['simkl']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString()}*${isMovie ? "MOVIE" : "SERIES"}',
       title: json['title'] ?? 'Unknown Title',
-      romajiTitle: json['title'] ?? 'Unknown Title',
-      description:
-          json['overview'] ?? json['plot'] ?? 'No description available.',
+      romajiTitle: json['title'] ?? 'Unknown Romaji Title',
+      description: json['overview'] ?? 'No description available.',
       poster: posterUrl,
-      largePoster: posterUrl,
-      cover: json['fanart'] != null
-          ? 'https://simkl.in/fanart/${json['fanart']}_medium.jpg'
-          : posterUrl,
+      cover: null,
       totalEpisodes: json['total_episodes']?.toString() ?? '1',
-      type: isMovie ? 'MOVIE' : 'TV',
-      rating: json['ratings']?['simkl']?['rating']?.toString() ?? '0.0',
-      popularity: json['rank']?.toString() ?? '0',
+      type: 'UNKNOWN',
+      premiered: releaseDate,
+      duration: 'Unknown runtime',
+      status: 'UNKNOWN',
+      rating: 'N/A',
+      popularity: '0',
       mediaType: type,
-      serviceType: ServicesType.simkl,
       aired: releaseDate,
+      totalChapters: '0',
       genres: [],
-    );
-  }
-
-  factory Media.froDMedia(DMedia manga, ItemType type) {
-    return Media(
-      id: manga.url ?? '',
-      title: manga.title ?? "Unknown Title",
-      romajiTitle: manga.title ?? "Unknown Title",
-      description: manga.description ?? "No description available.",
-      poster: manga.cover ?? "",
-      cover: manga.cover,
-      totalEpisodes: manga.episodes?.length.toString() ?? '??',
-      status: '??',
-      mediaType: type,
-      aired: 'Unknown',
-      totalChapters: manga.episodes?.length.toString(),
-      genres: manga.genre ?? [],
-      studios: null,
-      characters: [],
-      relations: [],
       recommendations: [],
-      nextAiringEpisode: null,
-      rankings: [],
-      mediaContent: manga.episodes,
-      serviceType: ServicesType.extensions,
+      serviceType: ServicesType.simkl,
     );
   }
 
-  factory Media.fromDManga(DMedia manga, ItemType type) {
-    return Media(
-      id: manga.url ?? '',
-      title: manga.title ?? "Unknown Title",
-      romajiTitle: manga.title ?? "Unknown Title",
-      description: manga.description ?? "No description available.",
-      poster: manga.cover ?? "",
-      cover: manga.cover,
-      totalEpisodes: manga.episodes?.length.toString() ?? '??',
-      status: '??',
-      mediaType: type,
-      aired: 'Unknown',
-      totalChapters: manga.episodes?.length.toString(),
-      genres: manga.genre ?? [],
-      studios: null,
-      characters: [],
-      relations: [],
-      recommendations: [],
-      nextAiringEpisode: null,
-      rankings: [],
-      altMediaContent:
-          manga.episodes?.map((e) => e.toChapter()).toList().reversed.toList(),
-      serviceType: ServicesType.extensions,
-    );
-  }
+  factory Media.fromAnilist(Map<String, dynamic> json) {
+    ItemType type = json['type'] == 'ANIME' ? ItemType.anime : ItemType.manga;
+    final recs = (json['recommendations']?['edges'] as List?)
+            ?.map((edge) => Media.fromAnilist(edge['node']['mediaRecommendation']))
+            .toList() ??
+        [];
 
-  factory Media.fromJson(Map<String, dynamic> json,
-      {Map<String, dynamic>? pageJson}) {
-    ItemType type = json['type'] == "ANIME"
-        ? ItemType.anime
-        : json['type'] == "MANGA"
-            ? ItemType.manga
-            : ItemType.novel;
-
-    List<Media> recs = [];
-    final recsJson = json['recommendations'];
-    if (recsJson != null) {
-      if (recsJson['nodes'] != null) {
-        recs =
-            (recsJson['nodes'] as List).map((r) => Media.fromRecs(r)).toList();
-      } else if (recsJson['edges'] != null) {
-        recs = (recsJson['edges'] as List)
-            .map((e) => Media.fromRecs(e['node'] ?? {}))
-            .where((m) => m.id.isNotEmpty && m.id != '')
-            .toList();
-      }
-    }
-
-    var media = Media(
+    final media = Media(
       id: json['id'].toString(),
       idMal: json['idMal']?.toString() ?? '0',
-      romajiTitle: json['title']['romaji'] ?? '?',
       title: json['title']['english'] ?? json['title']['romaji'] ?? '?',
       description: json['description'] ?? '?',
       poster: json['coverImage']['large'] ?? '?',
@@ -393,7 +327,8 @@ class Media {
       rating: ((json['averageScore'] ?? 0) / 10).toString(),
       popularity: json['popularity']?.toString() ?? '6900',
       format: json['format'] ?? '?',
-      aired: _parseDateRange(json['sta      seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
+      aired: _parseDateRange(json['startDate'], json['endDate']),
+      seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
       totalChapters: json['chapters']?.toString() ?? '?',
       genres: List<String>.from(json['genres'] ?? []),
       synonyms: List<String>.from(json['synonyms'] ?? []),
@@ -407,7 +342,8 @@ class Media {
               ?.map((el) => el['name'].toString())
               .toList() ??
           [],
-      characters: (json['characters']?['edges'] as List?) Character.fromJson(character))
+      characters: (json['characters']?['edges'] as List?)
+          ?.map((character) => Character.fromJson(character))
           .toList(),
       relations: (json['relations']?['edges'] as List?)
               ?.map((relation) => Relation.fromJson(relation))
@@ -423,180 +359,38 @@ class Media {
           [],
       mediaType: type,
       serviceType: ServicesType.anilist,
-      synonyms: (json['synonyms'] as List?)?.cast<String>() ?? [],
     );
 
     if (json['staffPreview'] != null) {
       media.staff = (json['staffPreview']['edges'] as List?)
-          ?.map((e) => Staff.fromJson(e))
-          .toList();
-    }
-
-    if (pageJson != null) {
-      media.friendsWatching = (pageJson['mediaList'] as List?)
-          ?.map((e) => TrackedMedia.fromSocialJson(e))
+          ?.map((staff) => Staff.fromJson(staff))
           .toList();
     }
 
     return media;
   }
 
-  void mergeSecondaryData(Map<String, dynamic> mediaJson,
-      {Map<String, dynamic>? pageJson}) {
-    if (mediaJson['staffPreview'] != null) {
-      staff = (mediaJson['staffPreview']['edges'] as List?)
-          ?.map((e) => Staff.fromJson(e))
-          .toList();
-    }
-
-    if (pageJson != null) {
-      friendsWatching = (pageJson['mediaList'] as List?)
-          ?.map((e) => TrackedMedia.fromSocialJson(e))
-          .toList();
-    }
-  }
-
-  factory Media.fromSmallJson(Map<String, dynamic> json, bool isManga,
-      {bool isMal = false, String? role}) {
-    if (json['type'] == 'MANGA') {
-      // Logger.i('Parsing MANGA: ${json['title']['romaji']}');
-    }
+  factory Media.fromAnilistCharacter(Map<String, dynamic> json) {
+    ItemType type = json['type'] == 'ANIME' ? ItemType.anime : ItemType.manga;
     return Media(
-      id: (isMal ? json['idMal']?.toString() : json['id'].toString()) ?? '',
-      romajiTitle: json['title']['romaji'] ?? '?',
-      title: json['title']['english'] ?? json['title']['romaji'] ?? '?',
-      description: json['description'] ?? '',
-      isAdult: (json['isAdult'] as bool?) ?? false,
-      totalEpisodes: (json['episodes'] as int?)?.toString() ?? '?',
-      poster: json['coverImage']?['large'] ?? '?',
-      largePoster: json['coverImage']?['extraLarge'] ?? '?',
-      cover: json['bannerImage'],
-      rating: ((json['averageScore'] ?? 0) / 10).toStringAsFixed(1),
-      type: json['type'] ?? (isManga ? 'MANGA' : 'ANIME'),
-      mediaType: (json['type'] == 'MANGA' || isManga)
-          ? ItemType.manga
-          : ItemType.anime,
-      userStatus: json['mediaListEntry']?['status'],
-      serviceType: ServicesType.anilist,
-      characterRole: role,
-      seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
-    )..type = json['type'] ?? (isManga ? 'MANGA' : 'ANIME');
-  }
-  factory Media.fromCarouselData(CarouselData data, ItemType type) {
-    return Media(
-        id: data.id!.toString(),
-        romajiTitle: data.title ?? '?',
-        title: data.title ?? '?',
-        poster: data.poster ?? '?',
-        rating: data.extraData ?? '0.0',
-        mediaType: type,
-        serviceType: data.servicesType);
-  }
-
-  factory Media.fromRecs(Map<String, dynamic> json) {
-    return Media(
-        id: json['mediaRecommendation'] != null
-            ? json['mediaRecommendation']['id'].toString()
-            : '',
-        title: json['mediaRecommendation'] != null
-            ? json['mediaRecommendation']['title']['english'] ??
-                json['mediaRecommendation']['title']['romaji']
-            : '',
-        poster: json['mediaRecommendation'] != null
-            ? json['mediaRecommendation']['coverImage']['large']
-            : '',
-        rating: ((json['mediaRecommendation'] != null
-                    ? json['mediaRecommendation']['averageScore'] ?? 0
-                    : 0) /
-                10)
-            .toString(),
-        serviceType: ServicesType.anilist);
-  }
-
-  factory Media.fromOfflineMedia(OfflineMedia offline, ItemType type) {
-    return Media(
-      id: offline.mediaId.toString(),
-      title: offline.name ?? offline.english ?? offline.jname ?? '?',
-      romajiTitle: offline.jname ?? '?',
-      description: offline.description ?? '?',
-      poster: offline.poster ?? '?',
-      cover: offline.cover,
-      totalEpisodes: offline.totalEpisodes?.toString() ?? '?',
-      type: offline.type ?? '?',
-      season: offline.season ?? '?',
-      premiered: offline.premiered ?? '?',
-      duration: offline.duration ?? '?',
-      status: offline.status ?? '?',
-      rating: offline.rating ?? '?',
-      popularity: offline.popularity ?? '?',
-      format: offline.format ?? '?',
-      aired: offline.aired ?? '?',
-      totalChapters: offline.totalChapters?.toString() ?? '?',
-      genres: offline.genres ?? const [],
-      studios: offline.studios,
-      characters: null,
-      relations: null,
-      recommendations: const [],
-      nextAiringEpisode: null,
-      rankings: const [],
-      mediaType: type,
-      serviceType: offline.serviceIndex != null
-          ? ServicesType.values[offline.serviceIndex!]
-          : ServicesType.anilist,
-    );
-  }
-
-  /// Factory for parsing underrated anime/manga from GitHub JSON
-  factory Media.fromUnderratedJson(Map<String, dynamic> json, bool isManga) {
-    return Media(
-      id: json['id']?.toString() ?? '0',
-      title: json['title'] ?? 'Unknown Title',
-      romajiTitle: json['title'] ?? 'Unknown Title',
-      description: json['reason'] ?? json['description'] ?? 'No description available.',
-      poster: json['cover'] ?? json['poster'] ?? '',
-      cover: json['cover'] ?? json['banner'] ?? '',
-      totalEpisodes: json['episodes']?.toString() ?? '?',
-      totalChapters: json['chapters']?.toString() ?? '?',
-      rating: json['score']?.toString() ?? json['averageScore']?.toString() ?? '?',
-      type: isManga ? 'MANGA' : 'ANIME',
-      mediaType: isManga ? ItemType.manga : ItemType.anime,
-      serviceType: ServicesType.anilist,
-      genres: (json['genres'] as List<dynamic>?)
-              ?.map((g) => g.toString())
-              .toList() ??
-          [],
-    );
-  }
-
-  /// Factory for parsing media from AniList API for underrated section
-  factory Media.fromUnderratedAnilist(Map<String, dynamic> json, bool isManga) {
-    ItemType type = isManga ? ItemType.manga : ItemType.anime;
-
-    return Media(
-      id: json['id']?.toString() ?? '0',
-      idMal: json['idMal']?.toString() ?? '0',
-      romajiTitle: json['title']?['romaji'] ?? '?',
-      title: json['title']?['english'] ?? json['title']?['romaji'] ?? '?',
-      description: json['description'] ?? '',
-      poster: json['coverImage']?['large'] ?? '',
-      largePoster: json['coverImage']?['extraLarge'] ?? '',
-      cover: json['bannerImage'],
-      color: json['coverImage']?['color'] ?? '',
-      totalEpisodes: json['episodes']?.toString() ?? '?',
-      totalChapters: json['chapters']?.toString() ?? '?',
-      rating: ((json['averageScore'] ?? 0) / 10).toStringAsFixed(1),
-      popularity: json['popularity']?.toString() ?? '0',
-      type: json['type'] ?? (isManga ? 'MANGA' : 'ANIME'),
-      status: (json['status'] ?? '?').replaceAll('_', ' '),
+      id: json['id'].toString(),
+      title: json['title']['english'] ??
+          json['title']['romaji'] ??
+          json['title']['userPreferred'] ??
+          '?',
+      description: '',
+      poster: json['coverImage']['large'] ?? '?',
+      totalEpisodes: '?',
+      type: json['type'] ?? '?',
+      season: '?',
+      premiered: '?',
+      duration: '?',
+      status: '?',
+      rating: ((json['averageScore'] ?? 0) / 10).toString(),
+      popularity: '?',
       format: json['format'] ?? '?',
-      season: json['season'] ?? '?',
-      seasonYear: json['seasonYear'] ?? json['startDate']?['year'],
-      premiered: '${json['season'] ?? '?'} ${json['seasonYear'] ?? '?'}',
-      genres: List<String>.from(json['genres'] ?? []),
-      studios: (json['studios']?['nodes'] as List?)
-              ?.map((el) => el['name'].toString())
-              .toList() ??
-          [],
+      aired: '?',
+      genres: [],
       mediaType: type,
       serviceType: ServicesType.anilist,
       nextAiringEpisode: json['nextAiringEpisode'] != null
@@ -616,47 +410,5 @@ class Media {
   static String _formatDate(Map<String, dynamic>? date) {
     if (date == null) return '?';
     return '${date['year'] ?? '?'}-${date['month']?.toString().padLeft(2, '0') ?? '?'}-${date['day']?.toString().padLeft(2, '0') ?? '?'}';
-  }
-}
-
-class NextAiringEpisode {
-  final int airingAt;
-  final int timeUntilAiring;
-  final int episode;
-
-  NextAiringEpisode({
-    required this.airingAt,
-    required this.timeUntilAiring,
-    required this.episode,
-  });
-
-  factory NextAiringEpisode.fromJson(Map<String, dynamic> json) {
-    return NextAiringEpisode(
-        airingAt: json['airingAt'],
-        timeUntilAiring: json['timeUntilAiring'],
-        episode: json['episode']);
-  }
-}
-
-class Ranking {
-  final int rank;
-  final String type;
-  final int year;
-
-  Ranking({required this.rank, required this.type, required this.year});
-
-  factory Ranking.fromJson(Map<String, dynamic> json) {
-    return Ranking(
-      rank: json['rank'] ?? 0,
-      type: json['type'] ?? '?',
-      year: json['year'] ?? 0,
-    );
-  }
-}
-
-extension RemoveDupesOnTM on List<TrackedMedia> {
-  List<TrackedMedia> removeDupes() {
-    final seen = <String>{};
-    return where((media) => seen.add(media.id!)).toList();
   }
 }
